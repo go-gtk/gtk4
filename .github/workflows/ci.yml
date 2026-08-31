@@ -1,0 +1,75 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gofmt:
+    name: gofmt + tidy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: gofmt
+        run: |
+          u=$(gofmt -l .)
+          if [ -n "$u" ]; then echo "::error::not gofmt-clean:"; echo "$u"; exit 1; fi
+      - name: go.mod tidy
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+  # The real GTK4 lane: build and drive live GTK4 under a headless X server, the
+  # same proof the feasibility spike established. libgtk-4-1 is the runtime; no
+  # -dev package and no cgo — the binding dlopens it.
+  linux:
+    name: linux (real GTK4, CGO=0, Xvfb)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Install GTK4 runtime + a headless X server
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgtk-4-1 xvfb xauth
+      - run: CGO_ENABLED=0 go vet ./...
+      - run: CGO_ENABLED=0 go build ./...
+      - name: Live test on real GTK4
+        run: xvfb-run -a env GDK_BACKEND=x11 go test -count=1 -v ./...
+
+  # The binding COMPILES everywhere (a consumer cross-compiles without a build
+  # tag; off Linux Init returns ErrUnsupported).
+  cross:
+    name: cross ${{ matrix.goos }}/${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { goos: linux, goarch: arm64 }
+          - { goos: linux, goarch: riscv64 }
+          - { goos: linux, goarch: ppc64le }
+          - { goos: linux, goarch: s390x }
+          - { goos: linux, goarch: loong64 }
+          - { goos: darwin, goarch: amd64 }
+          - { goos: darwin, goarch: arm64 }
+          - { goos: windows, goarch: amd64 }
+          - { goos: windows, goarch: arm64 }
+          - { goos: android, goarch: arm64 }
+          - { goos: js, goarch: wasm }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - run: CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build ./...
+      - run: CGO_ENABLED=0 GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go vet ./...
