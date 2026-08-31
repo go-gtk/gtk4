@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: BSD-3-Clause
 
-//go:build linux
+//go:build linux && !android
 
 // Package gtk4 binds the parts of GTK4 a windowing toolkit needs — windows, the
 // common controls, GObject signals and the GLib main loop — from pure Go with
