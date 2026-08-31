@@ -64,6 +64,16 @@ var (
 	gMainLoopQuit      func(uintptr)
 	gIdleAdd           func(uintptr, uintptr) uint32
 	gtkWidgetAddTick   func(uintptr, uintptr, uintptr, uintptr) uint32
+
+	gtkWidgetAddController func(uintptr, uintptr)
+	gtkGestureClickNew     func() uintptr
+	gtkGestureSingleSetBtn func(uintptr, uint32)
+	gtkGestureSingleGetBtn func(uintptr) uint32
+	gtkEventCtrlGetState   func(uintptr) uint32
+	gtkEventCtrlMotionNew  func() uintptr
+	gtkEventCtrlScrollNew  func(uint32) uintptr
+	gtkEventCtrlKeyNew     func() uintptr
+	gdkKeyvalToUnicode     func(uint32) uint32
 )
 
 func load() error {
@@ -112,6 +122,15 @@ func load() error {
 		reg(&gMainLoopQuit, glib, "g_main_loop_quit")
 		reg(&gIdleAdd, glib, "g_idle_add")
 		reg(&gtkWidgetAddTick, gtk, "gtk_widget_add_tick_callback")
+		reg(&gtkWidgetAddController, gtk, "gtk_widget_add_controller")
+		reg(&gtkGestureClickNew, gtk, "gtk_gesture_click_new")
+		reg(&gtkGestureSingleSetBtn, gtk, "gtk_gesture_single_set_button")
+		reg(&gtkGestureSingleGetBtn, gtk, "gtk_gesture_single_get_current_button")
+		reg(&gtkEventCtrlGetState, gtk, "gtk_event_controller_get_current_event_state")
+		reg(&gtkEventCtrlMotionNew, gtk, "gtk_event_controller_motion_new")
+		reg(&gtkEventCtrlScrollNew, gtk, "gtk_event_controller_scroll_new")
+		reg(&gtkEventCtrlKeyNew, gtk, "gtk_event_controller_key_new")
+		reg(&gdkKeyvalToUnicode, gtk, "gdk_keyval_to_unicode")
 	})
 	return loadErr
 }

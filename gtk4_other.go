@@ -66,3 +66,21 @@ func TextureFromRGBA([]byte, int, int) uintptr { return 0 }
 func (p Picture) SetRGBA([]byte, int, int)     {}
 func DrawingAreaNew() Widget                   { return 0 }
 func (w Widget) QueueDraw()                    {}
+
+// GDK modifier-state bits, defined here too so consumer code naming them compiles
+// off Linux.
+const (
+	ModShift   uint = 1 << 0
+	ModControl uint = 1 << 2
+	ModAlt     uint = 1 << 3
+	ModSuper   uint = 1 << 26
+)
+
+// The input event controllers do nothing off Linux; a host there uses the
+// platform's own toolkit for input.
+func KeyvalToUnicode(uint) rune                                { return 0 }
+func (w Widget) OnMouseDown(func(int, uint, float64, float64)) {}
+func (w Widget) OnMouseUp(func(int, uint, float64, float64))   {}
+func (w Widget) OnMotion(func(uint, float64, float64))         {}
+func (w Widget) OnScroll(func(float64, float64, uint))         {}
+func (w Widget) OnKey(func(uint, uint, uint, bool))            {}
