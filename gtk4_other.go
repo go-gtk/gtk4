@@ -51,3 +51,17 @@ func MainLoopNew() MainLoop                    { return 0 }
 func (l MainLoop) Run()                        {}
 func (l MainLoop) Quit()                       {}
 func IdleAdd(func())                           {}
+
+// MemoryR8G8B8A8 is the GdkMemoryFormat for a go-widgets RGBA frame; defined here
+// too so consumer code naming it compiles off Linux.
+const MemoryR8G8B8A8 = 5
+
+// Picture is a GtkPicture showing an RGBA frame. Off Linux it does nothing.
+type Picture uintptr
+
+func PictureNew() Picture                      { return 0 }
+func (p Picture) Widget() Widget               { return 0 }
+func TextureFromRGBA([]byte, int, int) uintptr { return 0 }
+func (p Picture) SetRGBA([]byte, int, int)     {}
+func DrawingAreaNew() Widget                   { return 0 }
+func (w Widget) QueueDraw()                    {}
