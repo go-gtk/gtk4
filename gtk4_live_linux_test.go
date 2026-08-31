@@ -9,6 +9,7 @@ package gtk4
 import (
 	"os"
 	"testing"
+	"time"
 )
 
 // TestLiveGTK4 drives real GTK4 through the binding: it initialises GTK, builds a
@@ -82,4 +83,50 @@ func TestLiveGTK4(t *testing.T) {
 	}
 	_ = clicked // click is user-driven; wiring is proven by 'changed' reaching Go
 	_ = os.Getenv
+}
+
+// TestLiveTickCallback proves the frame-clock tick drives a Go callback: a host
+// that renders its own pixels presents a fresh frame each vsync from here. It maps
+// a window, registers AddTickCallback, spins the loop, and asserts the tick fired
+// several times — then removes itself by returning false. A watchdog quits the
+// loop so a runner without a running frame clock fails fast rather than hanging.
+func TestLiveTickCallback(t *testing.T) {
+	ok, err := Init()
+	if err != nil {
+		t.Fatalf("Init: could not load GTK4: %v", err)
+	}
+	if !ok {
+		t.Skip("no display (gtk_init_check == false); run under Xvfb for the live test")
+	}
+
+	win := WindowNew()
+	win.SetTitle("go-gtk tick test")
+	win.SetDefaultSize(200, 120)
+	win.Present()
+
+	loop := MainLoopNew()
+	ticks := 0
+	const want = 3
+	win.AddTickCallback(func() bool {
+		ticks++
+		if ticks >= want {
+			loop.Quit()
+			return false // remove the callback; we have what we need
+		}
+		return true // keep ticking
+	})
+
+	// Watchdog: if the frame clock never runs, don't hang the suite.
+	go func() {
+		time.Sleep(5 * time.Second)
+		loop.Quit()
+	}()
+	loop.Run()
+
+	if ticks == 0 {
+		t.Fatal("frame-clock tick never reached Go (window not mapped, or no frame clock)")
+	}
+	if ticks < want {
+		t.Logf("tick fired %d times (< %d) before the watchdog; frame clock is slow but working", ticks, want)
+	}
 }

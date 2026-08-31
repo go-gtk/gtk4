@@ -25,32 +25,33 @@ func Init() (bool, error) { return false, ErrUnsupported }
 
 // The constructors return the null widget off Linux; the methods are no-ops or
 // zero, so consumer code that names them still compiles.
-func WindowNew() Widget                        { return 0 }
-func (w Widget) SetTitle(string)               {}
-func (w Widget) SetDefaultSize(int, int)       {}
-func (w Widget) SetChild(Widget)               {}
-func (w Widget) Present()                      {}
-func FixedNew() Widget                         { return 0 }
-func (f Widget) Put(Widget, float64, float64)  {}
-func (f Widget) Move(Widget, float64, float64) {}
-func ButtonNewWithLabel(string) Widget         { return 0 }
-func (w Widget) SetLabel(string)               {}
-func CheckButtonNewWithLabel(string) Widget    { return 0 }
-func (w Widget) Active() bool                  { return false }
-func (w Widget) SetActive(bool)                {}
-func EntryNew() Widget                         { return 0 }
-func (w Widget) SetVisibility(bool)            {}
-func LabelNew(string) Widget                   { return 0 }
-func (w Widget) Text() string                  { return "" }
-func (w Widget) SetText(string)                {}
-func (w Widget) SetSizeRequest(int, int)       {}
-func (w Widget) SetVisible(bool)               {}
-func (w Widget) Unparent()                     {}
-func (w Widget) Connect(string, func()) uint64 { return 0 }
-func MainLoopNew() MainLoop                    { return 0 }
-func (l MainLoop) Run()                        {}
-func (l MainLoop) Quit()                       {}
-func IdleAdd(func())                           {}
+func WindowNew() Widget                             { return 0 }
+func (w Widget) SetTitle(string)                    {}
+func (w Widget) SetDefaultSize(int, int)            {}
+func (w Widget) SetChild(Widget)                    {}
+func (w Widget) Present()                           {}
+func FixedNew() Widget                              { return 0 }
+func (f Widget) Put(Widget, float64, float64)       {}
+func (f Widget) Move(Widget, float64, float64)      {}
+func ButtonNewWithLabel(string) Widget              { return 0 }
+func (w Widget) SetLabel(string)                    {}
+func CheckButtonNewWithLabel(string) Widget         { return 0 }
+func (w Widget) Active() bool                       { return false }
+func (w Widget) SetActive(bool)                     {}
+func EntryNew() Widget                              { return 0 }
+func (w Widget) SetVisibility(bool)                 {}
+func LabelNew(string) Widget                        { return 0 }
+func (w Widget) Text() string                       { return "" }
+func (w Widget) SetText(string)                     {}
+func (w Widget) SetSizeRequest(int, int)            {}
+func (w Widget) SetVisible(bool)                    {}
+func (w Widget) Unparent()                          {}
+func (w Widget) Connect(string, func()) uint64      { return 0 }
+func (w Widget) AddTickCallback(func() bool) uint64 { return 0 }
+func MainLoopNew() MainLoop                         { return 0 }
+func (l MainLoop) Run()                             {}
+func (l MainLoop) Quit()                            {}
+func IdleAdd(func())                                {}
 
 // MemoryR8G8B8A8 is the GdkMemoryFormat for a go-widgets RGBA frame; defined here
 // too so consumer code naming it compiles off Linux.

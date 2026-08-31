@@ -63,6 +63,7 @@ var (
 	gMainLoopRun       func(uintptr)
 	gMainLoopQuit      func(uintptr)
 	gIdleAdd           func(uintptr, uintptr) uint32
+	gtkWidgetAddTick   func(uintptr, uintptr, uintptr, uintptr) uint32
 )
 
 func load() error {
@@ -110,6 +111,7 @@ func load() error {
 		reg(&gMainLoopRun, glib, "g_main_loop_run")
 		reg(&gMainLoopQuit, glib, "g_main_loop_quit")
 		reg(&gIdleAdd, glib, "g_idle_add")
+		reg(&gtkWidgetAddTick, gtk, "gtk_widget_add_tick_callback")
 	})
 	return loadErr
 }
@@ -211,6 +213,26 @@ func IdleAdd(fn func()) {
 	cb := purego.NewCallback(func(_ uintptr) int32 { fn(); return 0 })
 	retainCallback(cb)
 	gIdleAdd(cb, 0)
+}
+
+// AddTickCallback registers fn to run once per frame, driven by this widget's
+// GdkFrameClock, for as long as fn returns true. It is the GTK-native animation
+// tick: aligned to the display's refresh, and quiescent while the widget is
+// unmapped (the frame clock does not run then), so an idle hidden window costs
+// nothing. A host that renders its own pixels into a [Picture] uses it to present
+// a fresh frame each vsync — unlike a one-shot [IdleAdd], which the frame clock
+// would fire before the window is even mapped. fn runs on the main-loop thread;
+// returning false removes the callback. The callback is retained for the process
+// life, like [Widget.Connect]'s.
+func (w Widget) AddTickCallback(fn func() bool) uint64 {
+	cb := purego.NewCallback(func(_ uintptr, _ uintptr, _ uintptr) int32 {
+		if fn() {
+			return 1 // G_SOURCE_CONTINUE — keep ticking
+		}
+		return 0 // G_SOURCE_REMOVE
+	})
+	retainCallback(cb)
+	return uint64(gtkWidgetAddTick(uintptr(w), cb, 0, 0))
 }
 
 // retainCallback keeps every callback alive for the process: GTK stores the C
