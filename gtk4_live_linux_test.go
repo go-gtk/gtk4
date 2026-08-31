@@ -130,3 +130,44 @@ func TestLiveTickCallback(t *testing.T) {
 		t.Logf("tick fired %d times (< %d) before the watchdog; frame clock is slow but working", ticks, want)
 	}
 }
+
+// TestLiveInputControllers proves the input event controllers resolve and attach
+// to a real widget without crashing, and that KeyvalToUnicode maps a printable
+// keyval to its rune and a named key to nothing. Synthesising pointer/key events
+// under Xvfb needs a windowing robot, so the callbacks' firing is exercised by the
+// window back-end's own live test, not here.
+func TestLiveInputControllers(t *testing.T) {
+	ok, err := Init()
+	if err != nil {
+		t.Fatalf("Init: could not load GTK4: %v", err)
+	}
+	if !ok {
+		t.Skip("no display (gtk_init_check == false); run under Xvfb for the live test")
+	}
+
+	win := WindowNew()
+	win.SetDefaultSize(200, 120)
+	fixed := FixedNew()
+	win.SetChild(fixed)
+	// Each controller must attach without error.
+	win.OnMouseDown(func(button int, state uint, x, y float64) {})
+	win.OnMouseUp(func(int, uint, float64, float64) {})
+	win.OnMotion(func(uint, float64, float64) {})
+	win.OnScroll(func(float64, float64, uint) {})
+	win.OnKey(func(uint, uint, uint, bool) {})
+	win.Present()
+
+	// 'a' (GDK keyval 0x61) is the rune 'a'. An arrow key (Left, 0xff51) has no
+	// Unicode equivalent and yields 0. Return (0xff0d) is the gotcha a host must
+	// know: gdk_keyval_to_unicode returns the CONTROL rune 0x0D for it, not 0 — so
+	// a host maps named keyvals itself and keeps only printable runes (>= 0x20).
+	if got := KeyvalToUnicode(0x61); got != 'a' {
+		t.Errorf("KeyvalToUnicode(0x61) = %q, want 'a'", got)
+	}
+	if got := KeyvalToUnicode(0xff51); got != 0 {
+		t.Errorf("KeyvalToUnicode(Left) = %d, want 0 (no rune)", got)
+	}
+	if got := KeyvalToUnicode(0xff0d); got != 0x0d {
+		t.Errorf("KeyvalToUnicode(Return) = %d, want 0x0d (control rune, not printable)", got)
+	}
+}
