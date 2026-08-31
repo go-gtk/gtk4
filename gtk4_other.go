@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: BSD-3-Clause
 
-//go:build !(linux && !android && !s390x)
+//go:build !(linux && !android && (amd64 || arm64))
 
 // Away from Linux there is no GTK4 to bind. Every exported symbol the Linux build
 // provides exists here too, so a consumer cross-compiles without a build tag of
