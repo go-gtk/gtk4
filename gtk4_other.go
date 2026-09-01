@@ -54,6 +54,37 @@ func (w Widget) SetVisible(bool)                    {}
 func (w Widget) Unparent()                          {}
 func (w Widget) Connect(string, func()) uint64      { return 0 }
 func (w Widget) AddTickCallback(func() bool) uint64 { return 0 }
+
+// Widgets added for the go-widgets host backend; null/no-op/zero off Linux.
+func ProgressNew() Widget                           { return 0 }
+func (w Widget) SetFraction(float64)                {}
+func SpinnerNew() Widget                            { return 0 }
+func (w Widget) Start()                             {}
+func (w Widget) Stop()                              {}
+func StepperNew(float64, float64, float64) Widget   { return 0 }
+func (w Widget) SpinValue() float64                 { return 0 }
+func (w Widget) SetSpinValue(float64)               {}
+func SearchNew() Widget                             { return 0 }
+func ComboNew([]string) Widget                      { return 0 }
+func (w Widget) ComboText() string                  { return "" }
+func (w Widget) SetComboText(string)                {}
+func BoxNew(bool) Widget                            { return 0 }
+func (w Widget) Append(Widget)                      {}
+func ToggleButtonNewWithLabel(string) Widget        { return 0 }
+func (w Widget) SetGroup(Widget)                    {}
+func TextViewNew() Widget                           { return 0 }
+func (w Widget) Buffer() Widget                     { return 0 }
+func (w Widget) ConnectBufferChanged(func()) uint64 { return 0 }
+func (w Widget) SetTextViewText(string)             {}
+func (w Widget) TextViewText() string               { return "" }
+func LinkNew(string) Widget                         { return 0 }
+func (w Widget) OnActivateLink(func()) uint64       { return 0 }
+func DateNew() Widget                               { return 0 }
+func (w Widget) DateISO() string                    { return "" }
+func (w Widget) SetDateISO(string)                  {}
+func ColorNew() Widget                              { return 0 }
+func (w Widget) ColorHex() string                   { return "" }
+func (w Widget) SetColorHex(string)                 {}
 func MainLoopNew() MainLoop                         { return 0 }
 func (l MainLoop) Run()                             {}
 func (l MainLoop) Quit()                            {}

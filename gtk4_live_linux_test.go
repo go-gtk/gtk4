@@ -200,3 +200,111 @@ func TestLiveSliderPopUp(t *testing.T) {
 		t.Errorf("empty drop-down selection = %d, want -1", got)
 	}
 }
+
+// TestLiveNewWidgets drives the ten controls added for the go-widgets host
+// backend: it constructs each, sets a value, reads it back, and asserts the
+// round-trip where one applies. It needs a display; run under Xvfb.
+func TestLiveNewWidgets(t *testing.T) {
+	ok, err := Init()
+	if err != nil {
+		t.Fatalf("Init: could not load GTK4: %v", err)
+	}
+	if !ok {
+		t.Skip("no display (gtk_init_check == false); run under Xvfb for the live test")
+	}
+
+	// 1. Progress bar — read-only; just exercise construct + set.
+	prog := ProgressNew()
+	if prog == 0 {
+		t.Fatal("ProgressNew returned null")
+	}
+	prog.SetFraction(0.5)
+
+	// 2. Spinner — no value; construct + start/stop must not crash.
+	spin := SpinnerNew()
+	if spin == 0 {
+		t.Fatal("SpinnerNew returned null")
+	}
+	spin.Start()
+	spin.Stop()
+
+	// 3. Stepper (spin button) — value round-trips, "value-changed" wires.
+	step := StepperNew(0, 10, 0.5)
+	step.SetSpinValue(3.5)
+	if got := step.SpinValue(); got != 3.5 {
+		t.Errorf("stepper value = %v, want 3.5", got)
+	}
+	step.Connect("value-changed", func() {})
+
+	// 4. Search field — GtkEditable, so Text/SetText round-trip.
+	search := SearchNew()
+	search.SetText("query")
+	if got := search.Text(); got != "query" {
+		t.Errorf("search text = %q, want query", got)
+	}
+	search.Connect("search-changed", func() {})
+
+	// 5. Editable combo — prefilled; SetComboText/ComboText round-trip via the entry.
+	combo := ComboNew([]string{"alpha", "beta", "gamma"})
+	combo.SetComboText("custom")
+	if got := combo.ComboText(); got != "custom" {
+		t.Errorf("combo text = %q, want custom", got)
+	}
+	combo.Connect("changed", func() {})
+
+	// 6. Segmented primitives — a box of grouped toggle buttons; Active round-trips
+	//    through the shared (type-dispatched) accessors, "toggled" wires.
+	box := BoxNew(true)
+	first := ToggleButtonNewWithLabel("day")
+	second := ToggleButtonNewWithLabel("week")
+	first.SetGroup(0)      // start the group
+	second.SetGroup(first) // join it
+	box.Append(first)
+	box.Append(second)
+	first.SetActive(true)
+	if !first.Active() {
+		t.Error("toggle button did not become active")
+	}
+	second.SetActive(true) // exclusive group: selecting week deselects day
+	if !second.Active() {
+		t.Error("second toggle did not become active")
+	}
+	if first.Active() {
+		t.Error("grouped toggles are not exclusive: first still active")
+	}
+	second.Connect("toggled", func() {})
+
+	// 7. Multi-line text — buffer text round-trips; the change signal is on the buffer.
+	tv := TextViewNew()
+	tv.SetTextViewText("line one\nline two")
+	if got := tv.TextViewText(); got != "line one\nline two" {
+		t.Errorf("text view text = %q, want two lines", got)
+	}
+	tv.ConnectBufferChanged(func() {})
+	if tv.Buffer() == 0 {
+		t.Error("Buffer() returned null")
+	}
+
+	// 8. Link — construct + OnActivateLink wires (activation is user-driven).
+	link := LinkNew("Open")
+	if link == 0 {
+		t.Fatal("LinkNew returned null")
+	}
+	link.OnActivateLink(func() {})
+
+	// 9. Date — ISO round-trips.
+	date := DateNew()
+	date.SetDateISO("2026-02-14")
+	if got := date.DateISO(); got != "2026-02-14" {
+		t.Errorf("date ISO = %q, want 2026-02-14", got)
+	}
+	date.Connect("day-selected", func() {})
+
+	// 10. Colour — hex round-trips within rounding.
+	col := ColorNew()
+	col.SetColorHex("#3366cc")
+	if got := col.ColorHex(); got != "#3366CC" {
+		t.Errorf("colour hex = %q, want #3366CC", got)
+	}
+	col.Connect("color-set", func() {})
+}
