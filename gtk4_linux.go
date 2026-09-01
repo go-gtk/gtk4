@@ -65,6 +65,15 @@ var (
 	gIdleAdd           func(uintptr, uintptr) uint32
 	gtkWidgetAddTick   func(uintptr, uintptr, uintptr, uintptr) uint32
 
+	gtkScaleNewWithRange func(int32, float64, float64, float64) uintptr
+	gtkRangeGetValue     func(uintptr) float64
+	gtkRangeSetValue     func(uintptr, float64)
+	gtkStringListNew     func(uintptr) uintptr
+	gtkStringListAppend  func(uintptr, string)
+	gtkDropDownNew       func(uintptr, uintptr) uintptr
+	gtkDropDownGetSel    func(uintptr) uint32
+	gtkDropDownSetSel    func(uintptr, uint32)
+
 	gtkWidgetAddController func(uintptr, uintptr)
 	gtkGestureClickNew     func() uintptr
 	gtkGestureSingleSetBtn func(uintptr, uint32)
@@ -122,6 +131,14 @@ func load() error {
 		reg(&gMainLoopQuit, glib, "g_main_loop_quit")
 		reg(&gIdleAdd, glib, "g_idle_add")
 		reg(&gtkWidgetAddTick, gtk, "gtk_widget_add_tick_callback")
+		reg(&gtkScaleNewWithRange, gtk, "gtk_scale_new_with_range")
+		reg(&gtkRangeGetValue, gtk, "gtk_range_get_value")
+		reg(&gtkRangeSetValue, gtk, "gtk_range_set_value")
+		reg(&gtkStringListNew, gtk, "gtk_string_list_new")
+		reg(&gtkStringListAppend, gtk, "gtk_string_list_append")
+		reg(&gtkDropDownNew, gtk, "gtk_drop_down_new")
+		reg(&gtkDropDownGetSel, gtk, "gtk_drop_down_get_selected")
+		reg(&gtkDropDownSetSel, gtk, "gtk_drop_down_set_selected")
 		reg(&gtkWidgetAddController, gtk, "gtk_widget_add_controller")
 		reg(&gtkGestureClickNew, gtk, "gtk_gesture_click_new")
 		reg(&gtkGestureSingleSetBtn, gtk, "gtk_gesture_single_set_button")
@@ -189,6 +206,38 @@ func (w Widget) SetVisibility(vis bool) { gtkEntrySetVisibility(uintptr(w), vis)
 
 // LabelNew creates a static text label.
 func LabelNew(text string) Widget { return Widget(gtkLabelNew(text)) }
+
+// SliderNew creates a horizontal GtkScale over [min,max] with the given step. Read
+// and write its value with Value/SetValue; connect "value-changed" for edits.
+func SliderNew(min, max, step float64) Widget {
+	return Widget(gtkScaleNewWithRange(0, min, max, step)) // 0 = GTK_ORIENTATION_HORIZONTAL
+}
+
+// Value and SetValue read and write a slider's (GtkRange's) current value.
+func (w Widget) Value() float64     { return gtkRangeGetValue(uintptr(w)) }
+func (w Widget) SetValue(v float64) { gtkRangeSetValue(uintptr(w), v) }
+
+// PopUpNew creates a GtkDropDown listing items. The items are copied into a
+// GtkStringList (one append per string, so no C string-array marshalling is
+// needed). Read and write the selection index with Selected/SetSelected; connect
+// "notify::selected" for changes.
+func PopUpNew(items []string) Widget {
+	list := gtkStringListNew(0) // NULL → empty GtkStringList
+	for _, s := range items {
+		gtkStringListAppend(list, s)
+	}
+	return Widget(gtkDropDownNew(list, 0)) // no expression (the model holds strings)
+}
+
+// Selected returns the selected index, or -1 when nothing is selected
+// (GTK_INVALID_LIST_POSITION). SetSelected selects by index.
+func (w Widget) Selected() int {
+	if s := gtkDropDownGetSel(uintptr(w)); s != 0xffffffff {
+		return int(s)
+	}
+	return -1
+}
+func (w Widget) SetSelected(i int) { gtkDropDownSetSel(uintptr(w), uint32(i)) }
 
 // Text and SetText read and write an editable's text (entry, label via editable
 // where applicable), through the GtkEditable interface.

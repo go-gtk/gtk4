@@ -171,3 +171,32 @@ func TestLiveInputControllers(t *testing.T) {
 		t.Errorf("KeyvalToUnicode(Return) = %d, want 0x0d (control rune, not printable)", got)
 	}
 }
+
+// TestLiveSliderPopUp drives a real GtkScale and GtkDropDown: a slider's value and
+// a drop-down's selection round-trip through the binding, and the drop-down was
+// built from a Go []string without any C string-array marshalling.
+func TestLiveSliderPopUp(t *testing.T) {
+	ok, err := Init()
+	if err != nil {
+		t.Fatalf("Init: could not load GTK4: %v", err)
+	}
+	if !ok {
+		t.Skip("no display (gtk_init_check == false); run under Xvfb for the live test")
+	}
+
+	slider := SliderNew(0, 100, 1)
+	slider.SetValue(42)
+	if got := slider.Value(); got != 42 {
+		t.Errorf("slider value = %v, want 42", got)
+	}
+
+	pop := PopUpNew([]string{"one", "two", "three"})
+	pop.SetSelected(2)
+	if got := pop.Selected(); got != 2 {
+		t.Errorf("drop-down selection = %d, want 2", got)
+	}
+	empty := PopUpNew(nil)
+	if got := empty.Selected(); got != -1 {
+		t.Errorf("empty drop-down selection = %d, want -1", got)
+	}
+}
