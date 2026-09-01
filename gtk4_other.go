@@ -41,6 +41,12 @@ func (w Widget) SetActive(bool)                     {}
 func EntryNew() Widget                              { return 0 }
 func (w Widget) SetVisibility(bool)                 {}
 func LabelNew(string) Widget                        { return 0 }
+func SliderNew(float64, float64, float64) Widget    { return 0 }
+func (w Widget) Value() float64                     { return 0 }
+func (w Widget) SetValue(float64)                   {}
+func PopUpNew([]string) Widget                      { return 0 }
+func (w Widget) Selected() int                      { return -1 }
+func (w Widget) SetSelected(int)                    {}
 func (w Widget) Text() string                       { return "" }
 func (w Widget) SetText(string)                     {}
 func (w Widget) SetSizeRequest(int, int)            {}
