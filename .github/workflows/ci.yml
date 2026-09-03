@@ -15,7 +15,7 @@ jobs:
     name: gofmt + tidy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
           go-version: stable
@@ -35,7 +35,7 @@ jobs:
     name: linux (real GTK4, CGO=0, Xvfb)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
           go-version: stable
@@ -67,7 +67,7 @@ jobs:
           - { goos: android, goarch: arm64 }
           - { goos: js, goarch: wasm }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
           go-version: stable
