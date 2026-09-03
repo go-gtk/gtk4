@@ -1,4 +1,4 @@
-FROM golang:1.24-bookworm
+FROM golang:1.27-bookworm
 RUN apt-get update && apt-get install -y --no-install-recommends \
       libgtk-4-1 xvfb ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /gtk4
