@@ -75,6 +75,13 @@ var (
 	gtkDropDownGetSel    func(uintptr) uint32
 	gtkDropDownSetSel    func(uintptr, uint32)
 
+	gtkListBoxNew            func() uintptr
+	gtkListBoxAppend         func(uintptr, uintptr)
+	gtkListBoxGetSelectedRow func(uintptr) uintptr
+	gtkListBoxRowGetIndex    func(uintptr) int32
+	gtkListBoxGetRowAtIndex  func(uintptr, int32) uintptr
+	gtkListBoxSelectRow      func(uintptr, uintptr)
+
 	gtkWidgetAddController func(uintptr, uintptr)
 	gtkGestureClickNew     func() uintptr
 	gtkGestureSingleSetBtn func(uintptr, uint32)
@@ -183,6 +190,12 @@ func load() error {
 		reg(&gtkDropDownNew, gtk, "gtk_drop_down_new")
 		reg(&gtkDropDownGetSel, gtk, "gtk_drop_down_get_selected")
 		reg(&gtkDropDownSetSel, gtk, "gtk_drop_down_set_selected")
+		reg(&gtkListBoxNew, gtk, "gtk_list_box_new")
+		reg(&gtkListBoxAppend, gtk, "gtk_list_box_append")
+		reg(&gtkListBoxGetSelectedRow, gtk, "gtk_list_box_get_selected_row")
+		reg(&gtkListBoxRowGetIndex, gtk, "gtk_list_box_row_get_index")
+		reg(&gtkListBoxGetRowAtIndex, gtk, "gtk_list_box_get_row_at_index")
+		reg(&gtkListBoxSelectRow, gtk, "gtk_list_box_select_row")
 		reg(&gtkWidgetAddController, gtk, "gtk_widget_add_controller")
 		reg(&gtkGestureClickNew, gtk, "gtk_gesture_click_new")
 		reg(&gtkGestureSingleSetBtn, gtk, "gtk_gesture_single_set_button")
@@ -345,6 +358,32 @@ func (w Widget) Selected() int {
 	return -1
 }
 func (w Widget) SetSelected(i int) { gtkDropDownSetSel(uintptr(w), uint32(i)) }
+
+// ListBoxNew creates a GtkListBox — a single-column selectable list. Append rows
+// with ListBoxAppendText, read/write the selection with SelectedRow/SelectRow, and
+// connect "row-selected" for changes.
+func ListBoxNew() Widget { return Widget(gtkListBoxNew()) }
+
+// ListBoxAppendText appends a row holding a left-aligned label with text.
+func (w Widget) ListBoxAppendText(text string) {
+	gtkListBoxAppend(uintptr(w), gtkLabelNew(text))
+}
+
+// SelectedRow returns the selected row's index, or -1 when nothing is selected.
+func (w Widget) SelectedRow() int {
+	row := gtkListBoxGetSelectedRow(uintptr(w))
+	if row == 0 {
+		return -1
+	}
+	return int(gtkListBoxRowGetIndex(row))
+}
+
+// SelectRow selects the row at index i (a no-op if i is out of range).
+func (w Widget) SelectRow(i int) {
+	if row := gtkListBoxGetRowAtIndex(uintptr(w), int32(i)); row != 0 {
+		gtkListBoxSelectRow(uintptr(w), row)
+	}
+}
 
 // Text and SetText read and write an editable's text (entry, label via editable
 // where applicable), through the GtkEditable interface.

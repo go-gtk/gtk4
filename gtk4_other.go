@@ -47,6 +47,10 @@ func (w Widget) SetValue(float64)                   {}
 func PopUpNew([]string) Widget                      { return 0 }
 func (w Widget) Selected() int                      { return -1 }
 func (w Widget) SetSelected(int)                    {}
+func ListBoxNew() Widget                            { return 0 }
+func (w Widget) ListBoxAppendText(string)           {}
+func (w Widget) SelectedRow() int                   { return -1 }
+func (w Widget) SelectRow(int)                      {}
 func (w Widget) Text() string                       { return "" }
 func (w Widget) SetText(string)                     {}
 func (w Widget) SetSizeRequest(int, int)            {}

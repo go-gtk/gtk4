@@ -308,3 +308,27 @@ func TestLiveNewWidgets(t *testing.T) {
 	}
 	col.Connect("color-set", func() {})
 }
+
+// TestLiveListBox drives a real GtkListBox: rows append, a selection round-trips
+// through SelectRow/SelectedRow, and an empty list reports -1.
+func TestLiveListBox(t *testing.T) {
+	ok, err := Init()
+	if err != nil {
+		t.Fatalf("Init: %v", err)
+	}
+	if !ok {
+		t.Skip("no display (gtk_init_check == false); run under Xvfb")
+	}
+	lb := ListBoxNew()
+	for _, s := range []string{"alpha", "beta", "gamma"} {
+		lb.ListBoxAppendText(s)
+	}
+	lb.SelectRow(1)
+	if got := lb.SelectedRow(); got != 1 {
+		t.Errorf("selected row = %d, want 1", got)
+	}
+	empty := ListBoxNew()
+	if got := empty.SelectedRow(); got != -1 {
+		t.Errorf("empty list selection = %d, want -1", got)
+	}
+}
