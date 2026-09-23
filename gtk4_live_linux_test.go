@@ -349,8 +349,19 @@ func TestLiveOverflowClipsAChild(t *testing.T) {
 	}
 
 	clip := FixedNew()
+
+	// The value a fresh widget carries is GTK's business and it is not the same
+	// for every widget class -- a GtkFixed reports hidden before anyone has
+	// asked for anything. Asserting a default would only pin down GTK's choice;
+	// what this binding owes is that BOTH values can be reached and read back,
+	// so the test drives the round trip in both directions from a state it set
+	// itself, and merely records what it found.
+	t.Logf("a fresh GtkFixed reports overflow %d", gtkWidgetGetOverflow(uintptr(clip)))
+
+	clip.SetOverflowHidden(false)
 	if got := gtkWidgetGetOverflow(uintptr(clip)); got != overflowVisible {
-		t.Fatalf("a fresh GtkFixed has overflow %d, want visible (%d)", got, overflowVisible)
+		t.Fatalf("after SetOverflowHidden(false) overflow = %d, want visible (%d): "+
+			"the binding cannot reach one of the two values", got, overflowVisible)
 	}
 
 	clip.SetOverflowHidden(true)
