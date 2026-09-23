@@ -60,6 +60,7 @@ var (
 	gtkWidgetUnparent       func(uintptr)
 	gtkWidgetSetOverflow    func(uintptr, int32)
 	gtkWidgetGetOverflow    func(uintptr) int32
+	gtkWidgetGetParent      func(uintptr) uintptr
 
 	gSignalConnectData func(uintptr, string, uintptr, uintptr, uintptr, int32) uint64
 	gMainLoopNew       func(uintptr, bool) uintptr
@@ -180,6 +181,7 @@ func load() error {
 		reg(&gtkWidgetUnparent, gtk, "gtk_widget_unparent")
 		reg(&gtkWidgetSetOverflow, gtk, "gtk_widget_set_overflow")
 		reg(&gtkWidgetGetOverflow, gtk, "gtk_widget_get_overflow")
+		reg(&gtkWidgetGetParent, gtk, "gtk_widget_get_parent")
 		reg(&gSignalConnectData, gobj, "g_signal_connect_data")
 		reg(&gMainLoopNew, glib, "g_main_loop_new")
 		reg(&gMainLoopRun, glib, "g_main_loop_run")
@@ -405,6 +407,15 @@ func (w Widget) SetVisible(vis bool) { gtkWidgetSetVisible(uintptr(w), vis) }
 
 // Unparent removes a widget from its parent (a host reconciling controls away).
 func (w Widget) Unparent() { gtkWidgetUnparent(uintptr(w)) }
+
+// Parent is the widget currently holding this one, or 0 when nothing does.
+//
+// A host that moves a control between containers -- into a clipping box as it
+// scrolls out of view, back out as it scrolls in -- has no other way to see
+// that the move happened: Unparent and Put report nothing, so its own record
+// of where a widget went is the only thing it can otherwise check, and that
+// record is exactly what would be wrong.
+func (w Widget) Parent() Widget { return Widget(gtkWidgetGetParent(uintptr(w))) }
 
 // GtkOverflow: whether a widget's children are drawn past its own allocation.
 const (

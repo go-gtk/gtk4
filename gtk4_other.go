@@ -57,6 +57,7 @@ func (w Widget) SetSizeRequest(int, int)            {}
 func (w Widget) SetVisible(bool)                    {}
 func (w Widget) Unparent()                          {}
 func (w Widget) SetOverflowHidden(bool)             {}
+func (w Widget) Parent() Widget                     { return 0 }
 func (w Widget) Connect(string, func()) uint64      { return 0 }
 func (w Widget) AddTickCallback(func() bool) uint64 { return 0 }
 

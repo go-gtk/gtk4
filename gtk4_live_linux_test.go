@@ -385,5 +385,14 @@ func TestLiveOverflowClipsAChild(t *testing.T) {
 		t.Errorf("after SetOverflowHidden(false) overflow = %d, want visible (%d)", got, overflowVisible)
 	}
 
+	// And the move itself is observable: the button is held by the box, not by
+	// whatever put it there. Without this the test would only be checking its
+	// own bookkeeping.
+	if got := button.Parent(); got != clip {
+		t.Errorf("the button's parent is %d, want the clipping box %d", got, clip)
+	}
 	button.Unparent()
+	if got := button.Parent(); got != 0 {
+		t.Errorf("after Unparent the button still reports parent %d", got)
+	}
 }
