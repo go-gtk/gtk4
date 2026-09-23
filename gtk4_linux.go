@@ -58,6 +58,8 @@ var (
 	gtkWidgetSetSizeReq     func(uintptr, int32, int32)
 	gtkWidgetSetVisible     func(uintptr, bool)
 	gtkWidgetUnparent       func(uintptr)
+	gtkWidgetSetOverflow    func(uintptr, int32)
+	gtkWidgetGetOverflow    func(uintptr) int32
 
 	gSignalConnectData func(uintptr, string, uintptr, uintptr, uintptr, int32) uint64
 	gMainLoopNew       func(uintptr, bool) uintptr
@@ -176,6 +178,8 @@ func load() error {
 		reg(&gtkWidgetSetSizeReq, gtk, "gtk_widget_set_size_request")
 		reg(&gtkWidgetSetVisible, gtk, "gtk_widget_set_visible")
 		reg(&gtkWidgetUnparent, gtk, "gtk_widget_unparent")
+		reg(&gtkWidgetSetOverflow, gtk, "gtk_widget_set_overflow")
+		reg(&gtkWidgetGetOverflow, gtk, "gtk_widget_get_overflow")
 		reg(&gSignalConnectData, gobj, "g_signal_connect_data")
 		reg(&gMainLoopNew, glib, "g_main_loop_new")
 		reg(&gMainLoopRun, glib, "g_main_loop_run")
@@ -401,6 +405,24 @@ func (w Widget) SetVisible(vis bool) { gtkWidgetSetVisible(uintptr(w), vis) }
 
 // Unparent removes a widget from its parent (a host reconciling controls away).
 func (w Widget) Unparent() { gtkWidgetUnparent(uintptr(w)) }
+
+// GtkOverflow: whether a widget's children are drawn past its own allocation.
+const (
+	overflowVisible int32 = 0 // GTK_OVERFLOW_VISIBLE
+	overflowHidden  int32 = 1 // GTK_OVERFLOW_HIDDEN
+)
+
+// SetOverflowHidden decides whether a widget clips what its children draw to
+// its own allocation. A host that scrolls native controls puts one that is only
+// partly in view inside a box sized to the visible part, with this set: without
+// it GTK draws the child whole, past the viewport it belongs to.
+func (w Widget) SetOverflowHidden(hide bool) {
+	mode := overflowVisible
+	if hide {
+		mode = overflowHidden
+	}
+	gtkWidgetSetOverflow(uintptr(w), mode)
+}
 
 // ProgressNew creates a GtkProgressBar. It is read-only: set its position with
 // SetFraction (0..1); there is no change signal (a host drives it).
