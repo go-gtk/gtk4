@@ -332,3 +332,58 @@ func TestLiveListBox(t *testing.T) {
 		t.Errorf("empty list selection = %d, want -1", got)
 	}
 }
+
+// TestLiveOverflowClipsAChild drives the clipping a host needs to show only the
+// part of a control that its viewport still shows: a box sized to the visible
+// part, the control placed inside it at a negative offset, and the box told to
+// clip. It asserts the round trip through GTK — set, then read back with
+// gtk_widget_get_overflow — because a call that merely does not crash proves
+// nothing about what GTK stored.
+func TestLiveOverflowClipsAChild(t *testing.T) {
+	ok, err := Init()
+	if err != nil {
+		t.Fatalf("Init: could not load GTK4: %v", err)
+	}
+	if !ok {
+		t.Skip("no display (gtk_init_check == false); run under Xvfb for the live test")
+	}
+
+	clip := FixedNew()
+
+	// The value a fresh widget carries is GTK's business and it is not the same
+	// for every widget class -- a GtkFixed reports hidden before anyone has
+	// asked for anything. Asserting a default would only pin down GTK's choice;
+	// what this binding owes is that BOTH values can be reached and read back,
+	// so the test drives the round trip in both directions from a state it set
+	// itself, and merely records what it found.
+	t.Logf("a fresh GtkFixed reports overflow %d", gtkWidgetGetOverflow(uintptr(clip)))
+
+	clip.SetOverflowHidden(false)
+	if got := gtkWidgetGetOverflow(uintptr(clip)); got != overflowVisible {
+		t.Fatalf("after SetOverflowHidden(false) overflow = %d, want visible (%d): "+
+			"the binding cannot reach one of the two values", got, overflowVisible)
+	}
+
+	clip.SetOverflowHidden(true)
+	if got := gtkWidgetGetOverflow(uintptr(clip)); got != overflowHidden {
+		t.Errorf("after SetOverflowHidden(true) overflow = %d, want hidden (%d)", got, overflowHidden)
+	}
+
+	// A control taller than the box, hanging above it: the shape a half-scrolled
+	// control takes. GTK must accept the negative offset and keep the clip set.
+	button := ButtonNewWithLabel("half in view")
+	clip.SetSizeRequest(120, 12)
+	clip.Put(button, 0, -20)
+	button.SetSizeRequest(120, 32)
+	if got := gtkWidgetGetOverflow(uintptr(clip)); got != overflowHidden {
+		t.Errorf("after placing the child, overflow = %d, want hidden (%d)", got, overflowHidden)
+	}
+
+	// And it goes back: a control that scrolls fully into view is drawn whole.
+	clip.SetOverflowHidden(false)
+	if got := gtkWidgetGetOverflow(uintptr(clip)); got != overflowVisible {
+		t.Errorf("after SetOverflowHidden(false) overflow = %d, want visible (%d)", got, overflowVisible)
+	}
+
+	button.Unparent()
+}
