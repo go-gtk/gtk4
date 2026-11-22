@@ -46,6 +46,20 @@ jobs:
       - name: Live test on real GTK4
         run: xvfb-run -a env GDK_BACKEND=x11 go test -count=1 -v ./...
 
+  # GTK 4.16 added GdkMemoryTextureBuilder's update-texture/update-region, and
+  # ubuntu-latest (24.04) ships 4.14, so the lane above only proves the fallback.
+  # Debian trixie ships 4.18: this lane REQUIRES the update path to be present.
+  linux-new:
+    name: linux (GTK 4.16+, update path required)
+    runs-on: ubuntu-latest
+    container: golang:1.27-trixie
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install GTK4 runtime + a headless X server
+        run: apt-get update && apt-get install -y --no-install-recommends libgtk-4-1 xvfb xauth
+      - name: Live test, update path required
+        run: xvfb-run -a env GDK_BACKEND=x11 GTK4_REQUIRE_UPDATE=1 CGO_ENABLED=0 go test -count=1 -v -run 'TestLiveUpdateRGBA' ./...
+
   # The binding COMPILES everywhere (a consumer cross-compiles without a build
   # tag; off Linux Init returns ErrUnsupported).
   cross:

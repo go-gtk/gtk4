@@ -108,7 +108,15 @@ func (p Picture) Widget() Widget               { return 0 }
 func TextureFromRGBA([]byte, int, int) uintptr { return 0 }
 func (p Picture) SetRGBA([]byte, int, int)     {}
 func DrawingAreaNew() Widget                   { return 0 }
-func (w Widget) QueueDraw()                    {}
+
+// Rect is a pixel rectangle: the damaged part of a frame.
+type Rect struct{ X, Y, W, H int }
+
+func MinorVersion() int                                    { return 0 }
+func TextureUpdateSupported() bool                         { return false }
+func (p Picture) UpdateRGBA([]byte, int, int, []Rect) bool { return false }
+func (p Picture) ReadRGBA([]byte, int, int) bool           { return false }
+func (w Widget) QueueDraw()                                {}
 
 // GDK modifier-state bits, defined here too so consumer code naming them compiles
 // off Linux.
