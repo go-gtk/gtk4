@@ -115,14 +115,31 @@ func TextureUpdateSupported() bool {
 // width×height yet (the first frame, a resize), or when rects is empty or lies
 // outside the frame; the caller then calls [Picture.SetRGBA].
 func (p Picture) UpdateRGBA(data []byte, width, height int, rects []Rect) bool {
-	if !TextureUpdateSupported() || len(data) < width*height*4 || width <= 0 || height <= 0 {
+	if width <= 0 || height <= 0 || len(data) < width*height*4 {
 		return false
 	}
-	prev := gtkPictureGetPaintable(uintptr(p))
+	prev, region, ok := p.prepareUpdate(width, height, rects)
+	if !ok {
+		return false
+	}
+	b := gBytesNew(uintptr(unsafe.Pointer(&data[0])), uint64(width*height*4))
+	done := p.commitUpdate(b, width, height, prev, region)
+	gBytesUnref(b)
+	return done
+}
+
+// prepareUpdate checks that a partial update is possible and returns the texture
+// the picture shows and the cairo region of rects, which the caller owns (and
+// commitUpdate consumes). ok is false, with nothing allocated, when it is not.
+func (p Picture) prepareUpdate(width, height int, rects []Rect) (prev, region uintptr, ok bool) {
+	if !TextureUpdateSupported() || width <= 0 || height <= 0 {
+		return 0, 0, false
+	}
+	prev = gtkPictureGetPaintable(uintptr(p))
 	if prev == 0 || int(gdkTextureWidth(prev)) != width || int(gdkTextureHeight(prev)) != height {
-		return false
+		return 0, 0, false
 	}
-	region := cairoRegionCreate()
+	region = cairoRegionCreate()
 	n := 0
 	for _, r := range rects {
 		x0, y0, x1, y1 := max(r.X, 0), max(r.Y, 0), min(r.X+r.W, width), min(r.Y+r.H, height)
@@ -135,9 +152,15 @@ func (p Picture) UpdateRGBA(data []byte, width, height int, rects []Rect) bool {
 	}
 	if n == 0 {
 		cairoRegionDestroy(region)
-		return false
+		return 0, 0, false
 	}
-	b := gBytesNew(uintptr(unsafe.Pointer(&data[0])), uint64(width*height*4))
+	return prev, region, true
+}
+
+// commitUpdate builds the texture over bytes b (which must span the whole frame)
+// as an update of prev limited to region, sets it, and destroys region. b's
+// reference stays the caller's.
+func (p Picture) commitUpdate(b uintptr, width, height int, prev, region uintptr) bool {
 	bld := mtbNew()
 	mtbSetBytes(bld, b)
 	mtbSetWidth(bld, int32(width))
@@ -148,7 +171,6 @@ func (p Picture) UpdateRGBA(data []byte, width, height int, rects []Rect) bool {
 	mtbSetUpdReg(bld, region)
 	tex := mtbBuild(bld)
 	gObjectUnref(bld)
-	gBytesUnref(b)
 	cairoRegionDestroy(region)
 	if tex == 0 {
 		return false

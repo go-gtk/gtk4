@@ -37,6 +37,14 @@ radios) · `LabelNew` · `Text`/`SetText` (GtkEditable) · `SetSizeRequest` ·
 `SetVisible` · `Unparent` · `Connect` (signals) · `MainLoop` (`Run`/`Quit`) ·
 `IdleAdd` (marshal onto the GTK thread).
 
+Pixels: `PictureNew` with `SetRGBA`/`UpdateRGBA` (the frame is copied) or
+`NewSharedFrame` with `SetFrame`/`UpdateFrame` (GTK 4.16+ for the update; **no
+copy**: the texture is built over the frame's own GLib memory, which
+`GdkMemoryTextureBuilder` needs whole anyway,
+`gdk/gdkmemorytexturebuilder.c:726`). `OverlayNew` (+ `SetOverlayChild`/
+`AddOverlay`) and `AllocatedSize` let a picture fill a resizable window and
+report its size.
+
 ## Platform
 
 **Linux only** — this is the GTK path; a `go-widgets` host uses AppKit/Win32 on
