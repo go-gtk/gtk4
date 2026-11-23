@@ -118,6 +118,20 @@ func (p Picture) UpdateRGBA([]byte, int, int, []Rect) bool { return false }
 func (p Picture) ReadRGBA([]byte, int, int) bool           { return false }
 func (w Widget) QueueDraw()                                {}
 
+// SharedFrame is a zero-copy framebuffer shared with GTK. Off Linux none exists.
+type SharedFrame struct{}
+
+func NewSharedFrame(int, int) *SharedFrame              { return nil }
+func (f *SharedFrame) Pix() []byte                      { return nil }
+func (f *SharedFrame) Size() (int, int)                 { return 0, 0 }
+func (f *SharedFrame) Release()                         {}
+func (p Picture) SetFrame(*SharedFrame)                 {}
+func (p Picture) UpdateFrame(*SharedFrame, []Rect) bool { return false }
+func OverlayNew() Widget                                { return 0 }
+func (w Widget) SetOverlayChild(Widget)                 {}
+func (w Widget) AddOverlay(Widget)                      {}
+func (w Widget) AllocatedSize() (int, int)              { return 0, 0 }
+
 // GDK modifier-state bits, defined here too so consumer code naming them compiles
 // off Linux.
 const (

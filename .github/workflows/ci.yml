@@ -58,7 +58,7 @@ jobs:
       - name: Install GTK4 runtime + a headless X server
         run: apt-get update && apt-get install -y --no-install-recommends libgtk-4-1 xvfb xauth
       - name: Live test, update path required
-        run: xvfb-run -a env GDK_BACKEND=x11 GTK4_REQUIRE_UPDATE=1 CGO_ENABLED=0 go test -count=1 -v -run 'TestLiveUpdateRGBA' ./...
+        run: xvfb-run -a env GDK_BACKEND=x11 GTK4_REQUIRE_UPDATE=1 CGO_ENABLED=0 go test -count=1 -v -run 'TestLiveUpdateRGBA|TestLiveSharedFrame|TestLiveOverlayAllocatedSize' ./...
 
   # The binding COMPILES everywhere (a consumer cross-compiles without a build
   # tag; off Linux Init returns ErrUnsupported).
