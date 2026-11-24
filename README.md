@@ -45,6 +45,16 @@ copy**: the texture is built over the frame's own GLib memory, which
 `AddOverlay`) and `AllocatedSize` let a picture fill a resizable window and
 report its size.
 
+Input method: `IMContextNew` (the user's session input method, falling back to
+GTK's built-in compose/dead-key handling) and `IMContextSimpleNew` (that built-in
+handling only), with `SetClientWidget`, `FocusIn`/`FocusOut`, `Reset`,
+`SetCursorLocation` (anchors the candidate window), `Preedit` (the text being
+composed and the caret, in characters), `OnPreeditChanged` and `OnCommit`.
+`Widget.OnKeyIM` is `OnKey` with the context in front: GTK offers each key to the
+input method first, and the callback sees only what it did not consume. A host
+that paints its own text fields uses these to take dead keys, compose sequences
+and CJK input. Pango's underline attributes of the preedit are not read.
+
 ## Platform
 
 **Linux only** — this is the GTK path; a `go-widgets` host uses AppKit/Win32 on

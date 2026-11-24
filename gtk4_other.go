@@ -149,3 +149,19 @@ func (w Widget) OnMouseUp(func(int, uint, float64, float64))   {}
 func (w Widget) OnMotion(func(uint, float64, float64))         {}
 func (w Widget) OnScroll(func(float64, float64, uint))         {}
 func (w Widget) OnKey(func(uint, uint, uint, bool))            {}
+
+// IMContext is a GtkIMContext. Off Linux no real one is ever created.
+type IMContext uintptr
+
+func IMContextNew() IMContext                                    { return 0 }
+func IMContextSimpleNew() IMContext                              { return 0 }
+func (c IMContext) SetClientWidget(Widget)                       {}
+func (c IMContext) FocusIn()                                     {}
+func (c IMContext) FocusOut()                                    {}
+func (c IMContext) Reset()                                       {}
+func (c IMContext) SetCursorLocation(int, int, int, int)         {}
+func (c IMContext) Preedit() (string, int)                       { return "", 0 }
+func (c IMContext) OnPreeditChanged(func())                      {}
+func (c IMContext) OnCommit(func(string))                        {}
+func (c IMContext) Free()                                        {}
+func (w Widget) OnKeyIM(IMContext, func(uint, uint, uint, bool)) {}

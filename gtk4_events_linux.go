@@ -87,7 +87,17 @@ func (w Widget) OnScroll(fn func(dx, dy float64, state uint)) {
 // modifier state, and whether this is a press. Use [KeyvalToUnicode] for the rune
 // and a keyval table for named keys.
 func (w Widget) OnKey(fn func(keyval, keycode, state uint, press bool)) {
+	w.keyController(0, fn)
+}
+
+// keyController attaches the key controller; with a non-zero im, GTK offers every
+// key event to that input-method context first and emits key-pressed only for the
+// ones it did not consume.
+func (w Widget) keyController(im IMContext, fn func(keyval, keycode, state uint, press bool)) {
 	c := gtkEventCtrlKeyNew()
+	if im != 0 {
+		gtkEventCtrlKeyIM(c, uintptr(im))
+	}
 	gtkWidgetAddController(uintptr(w), c)
 	pressed := purego.NewCallback(func(_ uintptr, keyval, keycode, state uint32, _ uintptr) int32 {
 		fn(uint(keyval), uint(keycode), uint(state), true)
