@@ -185,3 +185,15 @@ func (c IMContext) OnPreeditChanged(func())                      {}
 func (c IMContext) OnCommit(func(string))                        {}
 func (c IMContext) Free()                                        {}
 func (w Widget) OnKeyIM(IMContext, func(uint, uint, uint, bool)) {}
+
+// MenuBar is the application menu bar; off Linux there is none.
+type MenuBar struct{}
+
+func (w Widget) Prepend(Widget)       {}
+func (w Widget) SetExpand(h, v bool)  {}
+func MenuBarNew(Widget) *MenuBar      { return nil }
+func (m *MenuBar) Widget() Widget     { return 0 }
+func (m *MenuBar) Len() int           { return 0 }
+func (m *MenuBar) SetItems([]BarItem) {}
+func (m *MenuBar) Activate(int) bool  { return false }
+func (m *MenuBar) Destroy()           {}
