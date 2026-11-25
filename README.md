@@ -65,6 +65,16 @@ close control, `Widget.Close` and `Widget.Mapped` complete it. `SetButtonChild`,
 `SetTooltip`, `Picture.SetCanShrink` and `Picture.SetAlternativeText` put a picture
 in a button with a caption a screen reader still has.
 
+Dialogs (GTK 4.10+): `ShowFileDialog(parent, FileDialogRequest, done)` drives
+`GtkFileDialog` (open, open several, choose a folder, save; suffix filters, the
+first the default) and `ShowAlert(parent, AlertRequest, done)` drives
+`GtkAlertDialog` (message, detail, up to any number of buttons; the first is the
+default). Both may be called from any goroutine, show the dialog on the main loop
+thread and call `done` there exactly once, with the paths as `g_file_get_path`
+gives them or the index of the button pressed; a dismissal is `Cancelled`, not an
+error. On a GTK older than 4.10, and off Linux, they return `ErrDialogUnsupported`
+and never call `done`; `DialogsSupported` asks first.
+
 ## Platform
 
 **Linux only** — this is the GTK path; a `go-widgets` host uses AppKit/Win32 on
