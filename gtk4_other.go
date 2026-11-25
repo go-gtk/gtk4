@@ -150,6 +150,26 @@ func (w Widget) OnMotion(func(uint, float64, float64))         {}
 func (w Widget) OnScroll(func(float64, float64, uint))         {}
 func (w Widget) OnKey(func(uint, uint, uint, bool))            {}
 
+// ContextMenu is a GtkPopoverMenu over a GMenu. Off Linux none is ever created.
+type ContextMenu struct{}
+
+func ContextMenuNew(Widget) *ContextMenu      { return nil }
+func (m *ContextMenu) SetItems([]MenuItem)    {}
+func (m *ContextMenu) Popup(float64, float64) {}
+func (m *ContextMenu) Popdown()               {}
+func (m *ContextMenu) IsOpen() bool           { return false }
+func (m *ContextMenu) Len() int               { return 0 }
+func (m *ContextMenu) Activate(int) bool      { return false }
+func (m *ContextMenu) Destroy()               {}
+
+func (w Widget) OnCloseRequest(func() bool) {}
+func (w Widget) SetTooltip(string)          {}
+func (w Widget) Close()                     {}
+func (w Widget) Mapped() bool               { return false }
+func (w Widget) SetButtonChild(Widget)      {}
+func (p Picture) SetCanShrink(bool)         {}
+func (p Picture) SetAlternativeText(string) {}
+
 // IMContext is a GtkIMContext. Off Linux no real one is ever created.
 type IMContext uintptr
 
