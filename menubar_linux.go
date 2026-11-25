@@ -192,6 +192,9 @@ func (m *MenuBar) SetItems(items []BarItem) {
 	group := gSimpleActionGroupNew()
 	ctl := gtkShortcutCtlNew()
 	gtkShortcutCtlScope(ctl, 2) // GTK_SHORTCUT_SCOPE_GLOBAL: the root handles it
+	// Capture phase: a painted area below consumes keys in the bubble phase, and
+	// a menu accelerator must win over it.
+	gtkCtrlSetPhase(ctl, 1) // GTK_PHASE_CAPTURE
 	for i := range m.leaves {
 		l := &m.leaves[i]
 		l.name = fmt.Sprintf("i%d", i)
