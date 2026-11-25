@@ -191,6 +191,7 @@ type MenuBar struct{}
 
 func (w Widget) Prepend(Widget)       {}
 func (w Widget) SetExpand(h, v bool)  {}
+func MenuBarSupported() bool          { return false }
 func MenuBarNew(Widget) *MenuBar      { return nil }
 func (m *MenuBar) Widget() Widget     { return 0 }
 func (m *MenuBar) Len() int           { return 0 }

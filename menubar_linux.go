@@ -142,6 +142,9 @@ func barCallbacks() (activate, change uintptr) {
 	return barCbOnce.activate, barCbOnce.change
 }
 
+// MenuBarSupported reports whether this GTK has what a [MenuBar] needs.
+func MenuBarSupported() bool { return loadBar() == nil }
+
 // MenuBarNew makes an empty bar for window. It returns nil when the menu
 // machinery cannot be loaded.
 func MenuBarNew(window Widget) *MenuBar {
