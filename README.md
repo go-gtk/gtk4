@@ -75,6 +75,19 @@ gives them or the index of the button pressed; a dismissal is `Cancelled`, not a
 error. On a GTK older than 4.10, and off Linux, they return `ErrDialogUnsupported`
 and never call `done`; `DialogsSupported` asks first.
 
+Collections: `ColumnViewNew(columns)` is a table (a GtkColumnView in a scroller over
+a GtkStringList): `SetRows([][]string)` replaces every row with one splice, so
+100 000 rows are 100 000 small GObjects and only the rows on screen get widgets;
+`Selected`/`SetSelected`, `OnSelect` (called for the person's change only, never
+for the host's own; `Select`, `SelectPath` and `Switch` change the selection as the
+person would, handler included), `Len`, `Rebuilds`. `TreeViewNew()` is a tree (a GtkListView
+over a GtkTreeListModel with expander rows): `SetNodes([]TreeNode)` (children are
+made lazily as a row expands; `Expanded` nodes start open), `SetSelectedPath`
+(opens the ancestors), `SelectedPath`, `OnSelect`. `NotebookNew()` is a tab strip
+(a GtkNotebook with empty pages, the host lays the content out): `SetTabs`,
+`Current`/`SetCurrent`, `Remove`, `Len`, `OnSwitch`. Each has `Widget()` to place
+and `Destroy()`; a cell may not hold NUL or the ASCII unit separator (dropped).
+
 ## Platform
 
 **Linux only** — this is the GTK path; a `go-widgets` host uses AppKit/Win32 on
@@ -83,6 +96,13 @@ without a build tag) and every constructor's `Init` returns
 [`ErrUnsupported`](https://pkg.go.dev/github.com/go-gtk/gtk4#ErrUnsupported), so
 nothing is a build-time surprise. It needs only the **runtime** `libgtk-4`
 (`libgtk-4-1` on Debian/Ubuntu) — no `-dev` package.
+
+The Linux binding is built for **amd64 and arm64 only**. `purego.Dlopen` links a
+Go binary dynamically (it needs the loader, `ld-linux`), and on the other Linux
+architectures a test binary run under qemu user emulation (loong64, ppc64le,
+riscv64, s390x) fails with "Could not open ld-linux". Those architectures get
+the same stub as every other platform: it compiles, `Init` reports
+`ErrUnsupported`, and the collection constructors return nil.
 
 ## Testing
 
