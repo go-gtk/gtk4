@@ -55,6 +55,16 @@ input method first, and the callback sees only what it did not consume. A host
 that paints its own text fields uses these to take dead keys, compose sequences
 and CJK input. Pango's underline attributes of the preedit are not read.
 
+Context menus and window close: `ContextMenuNew(widget)` attaches a GtkPopoverMenu
+over a GMenu that a secondary click opens (capture phase, so it wins over a child's
+own menu); `SetItems([]MenuItem)` swaps its entries in place (an empty `Label` is a
+separator, a nil `OnPick` an inert greyed entry), and `Popup`, `Popdown`, `IsOpen`,
+`Activate` and `Destroy` drive it. `MenuSections` is the pure layout of a flat list
+into GMenu sections. `Widget.OnCloseRequest` stops or lets through the window's
+close control, `Widget.Close` and `Widget.Mapped` complete it. `SetButtonChild`,
+`SetTooltip`, `Picture.SetCanShrink` and `Picture.SetAlternativeText` put a picture
+in a button with a caption a screen reader still has.
+
 ## Platform
 
 **Linux only** — this is the GTK path; a `go-widgets` host uses AppKit/Win32 on
