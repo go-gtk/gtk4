@@ -253,9 +253,13 @@ func (m *MenuBar) fill(menu uintptr, secs []barSection) {
 }
 
 // Activate chooses leaf i (depth-first order) through its action name, as a click
-// or its accelerator would, and reports whether GTK found an enabled action.
+// or its accelerator would, and reports whether it was a row that can be chosen.
 func (m *MenuBar) Activate(i int) bool {
 	if i < 0 || i >= len(m.leaves) {
+		return false
+	}
+	// GTK reports a disabled action as found, so the refusal is made here.
+	if it := m.leaves[i].item; it.Disabled || it.OnActivate == nil {
 		return false
 	}
 	return gtkActivateAction(uintptr(m.win), "bar."+m.leaves[i].name, 0)
